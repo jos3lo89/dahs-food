@@ -1,0 +1,19 @@
+---
+import { extras } from "../data/products";
+import BreakfastCard from "./BreakfastCard.astro";
+---
+
+<section id="extras" class="py-20 bg-linear-to-br from-pink-100 to-rose-50">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-16 animate-fade-in">
+      <h2 class="text-5xl font-bold text-pink-900 mb-4">Extras Deliciosos</h2>
+      <p class="text-xl text-pink-600">
+        Complementa tu desayuno con algo especial
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {extras.map((extra) => <BreakfastCard product={extra} />)}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,181 @@
+---
+import type { Product } from "../data/products";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+---
+
+<div class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover">
+  <!-- Imagen -->
+  <div class="relative h-56 overflow-hidden">
+    <img
+      src={product.image}
+      alt={product.name}
+      class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+    />
+    <div
+      class="absolute top-4 right-4 bg-pink-500 text-white px-4 py-2 rounded-full font-bold shadow-md"
+    >
+      S/ {product.price.toFixed(2)}
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="p-6">
+    <h3 class="text-2xl font-bold text-pink-900 mb-2">{product.name}</h3>
+    <p class="text-gray-600 mb-6">{product.description}</p>
+
+    <!-- Controles -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center bg-pink-50 rounded-full overflow-hidden">
+        <button
+          class="decrease-btn px-4 py-2 text-pink-600 hover:bg-pink-100 transition font-bold cursor-pointer"
+          data-id={product.id}
+        >
+          −
+        </button>
+        <!-- <span
+          class="quantity px-4 py-2 font-semibold text-pink-900"
+          data-id={product.id}>0</span
+        > -->
+        <span
+          class="quantity px-4 py-2 font-semibold text-pink-900 cursor-default"
+          data-id={product.id}>1</span
+        >
+        <button
+          class="increase-btn px-4 py-2 text-pink-600 hover:bg-pink-100 transition font-bold cursor-pointer"
+          data-id={product.id}
+        >
+          +
+        </button>
+      </div>
+
+      <button
+        class="add-to-cart-btn cursor-pointer flex-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-lg"
+        data-product={JSON.stringify(product)}
+      >
+        Agregar 🛒
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { addToCart, cartItems, updateQuantity } from "../store/cart";
+
+  // const updateDisplay = () => {
+  //   const cart = cartItems.get();
+
+  //   document.querySelectorAll(".quantity").forEach((el) => {
+  //     const id = el.getAttribute("data-id");
+  //     if (!id) return;
+
+  //     const item = cart[id];
+  //     const qtySpan = el as HTMLElement;
+
+  //     // SI EL PRODUCTO ESTÁ EN EL CARRITO: Reflejamos el estado global
+  //     if (item) {
+  //       qtySpan.textContent = item.quantity.toString();
+  //       qtySpan.classList.remove("opacity-50");
+  //     } else {
+  //       // SI NO ESTÁ EN EL CARRITO: No sobreescribimos con 0,
+  //       // dejamos que el usuario lo manipule localmente (mínimo 1)
+  //       if (qtySpan.textContent === "0") qtySpan.textContent = "1";
+  //       qtySpan.classList.add("opacity-50");
+  //     }
+  //   });
+  // };
+
+  const updateDisplay = () => {
+    const cart = cartItems.get();
+
+    document.querySelectorAll(".quantity").forEach((el) => {
+      const id = el.getAttribute("data-id");
+      if (!id) return;
+
+      const item = cart[id];
+      const qtySpan = el as HTMLElement;
+
+      if (item) {
+        // SI ESTÁ EN EL CARRITO: Mostramos la cantidad real del store
+        qtySpan.textContent = item.quantity.toString();
+        qtySpan.classList.remove("opacity-50");
+      } else {
+        // SI NO ESTÁ EN EL CARRITO (o se acaba de limpiar):
+        // Forzamos a que el contador visual vuelva a 1
+        qtySpan.textContent = "1";
+        qtySpan.classList.add("opacity-50");
+      }
+    });
+  };
+
+  cartItems.subscribe(updateDisplay);
+  updateDisplay();
+
+  // BOTÓN AGREGAR
+  document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const productData = btn.getAttribute("data-product");
+      if (productData) {
+        const product = JSON.parse(productData);
+        const card = btn.closest(".bg-white");
+        const qtySpan = card?.querySelector(".quantity");
+        const currentQty = parseInt(qtySpan?.textContent || "1");
+
+        // Enviamos la cantidad actual del contador al store
+        addToCart(product, currentQty);
+      }
+    });
+  });
+
+  // BOTÓN MÁS (+)
+  document.querySelectorAll(".increase-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+
+      const cart = cartItems.get();
+      const qtySpan = btn.parentElement?.querySelector(
+        ".quantity"
+      ) as HTMLElement;
+      const currentVal = parseInt(qtySpan.textContent || "1");
+
+      if (cart[id]) {
+        // Si ya está en el carrito, actualizamos el store directamente
+        updateQuantity(id, cart[id].quantity + 1);
+      } else {
+        // Si NO está en el carrito, solo subimos el número visualmente
+        qtySpan.textContent = (currentVal + 1).toString();
+      }
+    });
+  });
+
+  // BUSCA ESTA PARTE EN TU SCRIPT DE LA TARJETA:
+  document.querySelectorAll(".decrease-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+
+      const cart = cartItems.get();
+      const qtySpan = btn.parentElement?.querySelector(
+        ".quantity"
+      ) as HTMLElement;
+      const currentVal = parseInt(qtySpan.textContent || "1");
+
+      if (cart[id]) {
+        // CAMBIO AQUÍ: Solo actualiza si es mayor a 1
+        if (cart[id].quantity > 1) {
+          updateQuantity(id, cart[id].quantity - 1);
+        }
+      } else {
+        // Si NO está en el carrito, bajamos visualmente pero mínimo hasta 1
+        if (currentVal > 1) {
+          qtySpan.textContent = (currentVal - 1).toString();
+        }
+      }
+    });
+  });
+</script>

@@ -1,0 +1,61 @@
+---
+
+---
+
+<header
+  class="bg-linear-to-r from-pink-100 via-pink-50 to-pink-100 shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95"
+>
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center space-x-3 cursor-default">
+        <span class="text-4xl">🌸</span>
+        <div>
+          <h1 class="text-2xl font-bold text-pink-600">Desayunos Dulces</h1>
+          <p class="text-xs text-pink-400">Hechos con amor</p>
+        </div>
+      </div>
+
+      <!-- Navegación -->
+      <nav class="hidden md:flex space-x-6">
+        <a
+          href="#hero"
+          class="text-pink-600 hover:text-pink-800 font-medium transition"
+          >Inicio</a
+        >
+        <a
+          href="#desayunos"
+          class="text-pink-600 hover:text-pink-800 font-medium transition"
+          >Desayunos</a
+        >
+        <a
+          href="#extras"
+          class="text-pink-600 hover:text-pink-800 font-medium transition"
+          >Extras</a
+        >
+      </nav>
+
+      <!-- Carrito -->
+      <button
+        id="cart-button"
+        class="relative cursor-pointer bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-full shadow-md transition-all duration-300 hover:shadow-xl flex items-center space-x-2"
+      >
+        <span class="text-xl">🛒</span>
+        <span class="font-semibold">Carrito</span>
+        <span
+          id="cart-count"
+          class="absolute -top-2 -right-2 bg-pink-700 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center"
+          >0</span
+        >
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { isCartOpen } from "../store/cart";
+
+  document.getElementById("cart-button")?.addEventListener("click", () => {
+    isCartOpen.set(true);
+  });
+</script>
