@@ -1,8 +1,3 @@
----
-
----
-
-<!-- Modal del Carrito -->
 <div
   id="cart-modal"
   class="fixed inset-0 backdrop-blur-lg z-50 hidden items-center justify-center p-4"
@@ -10,7 +5,6 @@
   <div
     class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
   >
-    <!-- Header -->
     <div
       class="bg-linear-to-r from-pink-500 to-pink-600 text-white p-6 flex items-center justify-between"
     >
@@ -24,11 +18,8 @@
       >
     </div>
 
-    <!-- Contenido -->
     <div class="flex-1 overflow-y-auto p-6">
-      <div id="cart-items" class="space-y-4">
-        <!-- Items del carrito se insertarán aquí -->
-      </div>
+      <div id="cart-items" class="space-y-4"></div>
 
       <div id="empty-cart-message" class="text-center py-12 hidden">
         <span class="text-6xl mb-4 block">🍽️</span>
@@ -37,12 +28,10 @@
       </div>
     </div>
 
-    <!-- Formulario y Total -->
     <div
       id="cart-footer"
       class="border-t border-pink-200 p-6 space-y-4 bg-pink-50"
     >
-      <!-- Inputs de cliente -->
       <div class="space-y-3">
         <input
           type="text"
@@ -58,7 +47,6 @@
         />
       </div>
 
-      <!-- Total -->
       <div
         class="flex items-center justify-between text-2xl font-bold text-pink-900"
       >
@@ -66,7 +54,6 @@
         <span id="cart-total">S/ 0.00</span>
       </div>
 
-      <!-- Botones -->
       <div class="flex gap-3">
         <button
           id="clear-cart"
@@ -112,7 +99,6 @@
     "customer-address"
   ) as HTMLInputElement;
 
-  // Abrir/cerrar modal
   isCartOpen.subscribe((open) => {
     if (open) {
       modal?.classList.remove("hidden");
@@ -133,13 +119,11 @@
     }
   });
 
-  // Renderizar carrito
   function renderCart() {
     const items = Object.values(cartItems.get());
     const total = getCartTotal();
     const count = getCartCount();
 
-    // Actualizar contador en header
     if (cartCountEl) {
       cartCountEl.textContent = count.toString();
       if (count > 0) {
@@ -149,12 +133,10 @@
       }
     }
 
-    // Actualizar total
     if (cartTotalEl) {
       cartTotalEl.textContent = `S/ ${total.toFixed(2)}`;
     }
 
-    // Mostrar/ocultar mensaje vacío
     if (items.length === 0) {
       emptyMessage?.classList.remove("hidden");
       cartFooter?.classList.add("hidden");
@@ -165,32 +147,36 @@
     emptyMessage?.classList.add("hidden");
     cartFooter?.classList.remove("hidden");
 
-    // Renderizar items
     if (cartItemsContainer) {
       cartItemsContainer.innerHTML = items
         .map(
           (item) => `
-        <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-md">
-          <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl" />
-          <div class="flex-1">
-            <h4 class="font-bold text-pink-900">${item.name}</h4>
-            <p class="text-sm text-gray-600">S/ ${item.price.toFixed(2)} c/u</p>
+        <div class="rounded-2xl shadow-lg">
+          <div>
+            <div class="flex items-center gap-4">
+              <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl" />
+              <div class="flex-1">
+                <h4 class="font-bold text-pink-900">${item.name}</h4>
+                <p class="text-sm text-gray-600">S/ ${item.price.toFixed(2)} c/u</p>
+              </div>
+
+                <p class="font-bold text-pink-900 mr-4">S/ ${(item.price * item.quantity).toFixed(2)}</p>
+            </div>
+
+            </div>
+
+          <div class="flex justify-center items-center bg-pink-100 rounded-b-lg mt-1 py-1">
+            <button class="cart-decrease cursor-pointer rounded-lg px-3 py-1 text-pink-600 bg-pink-200 hover:bg-pink-300 font-bold" data-id="${item.id}">−</button>
+            <span class="px-3 py-1 font-semibold text-pink-900 cursor-default">${item.quantity}</span>
+            <button class="cart-increase cursor-pointer rounded-lg px-3 py-1 text-pink-600 bg-pink-200 hover:bg-pink-300 font-bold" data-id="${item.id}">+</button>
+            <button class="cart-remove cursor-pointer text-sm text-red-500 hover:text-red-700 ml-4" data-id="${item.id}">Eliminar</button>
           </div>
-          <div class="flex items-center bg-pink-50 rounded-full overflow-hidden">
-            <button class="cart-decrease px-3 py-1 text-pink-600 hover:bg-pink-100 font-bold" data-id="${item.id}">−</button>
-            <span class="px-3 py-1 font-semibold text-pink-900">${item.quantity}</span>
-            <button class="cart-increase px-3 py-1 text-pink-600 hover:bg-pink-100 font-bold" data-id="${item.id}">+</button>
-          </div>
-          <div class="text-right">
-            <p class="font-bold text-pink-900">S/ ${(item.price * item.quantity).toFixed(2)}</p>
-            <button class="cart-remove cursor-pointer text-xs text-red-500 hover:text-red-700 mt-1" data-id="${item.id}">Eliminar</button>
-          </div>
+
         </div>
       `
         )
         .join("");
 
-      // Event listeners para botones de carrito
       document.querySelectorAll(".cart-increase").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.getAttribute("data-id");
@@ -201,23 +187,11 @@
         });
       });
 
-      // document.querySelectorAll(".cart-decrease").forEach((btn) => {
-      //   btn.addEventListener("click", () => {
-      //     const id = btn.getAttribute("data-id");
-      //     if (id) {
-      //       const cart = cartItems.get();
-      //       updateQuantity(id, cart[id].quantity - 1);
-      //     }
-      //   });
-      // });
-
-      // BUSCA ESTA PARTE EN TU SCRIPT DEL MODAL (dentro de renderCart):
       document.querySelectorAll(".cart-decrease").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.getAttribute("data-id");
           if (id) {
             const cart = cartItems.get();
-            // CAMBIO AQUÍ: Validamos que la cantidad sea mayor a 1 antes de restar
             if (cart[id].quantity > 1) {
               updateQuantity(id, cart[id].quantity - 1);
             }
@@ -234,11 +208,9 @@
     }
   }
 
-  // Suscribirse a cambios
   cartItems.subscribe(renderCart);
   renderCart();
 
-  // Inputs de nombre y dirección
   nameInput?.addEventListener("input", (e) => {
     customerName.set((e.target as HTMLInputElement).value);
   });
@@ -247,15 +219,12 @@
     customerAddress.set((e.target as HTMLInputElement).value);
   });
 
-  // Vaciar carrito
-
   document.getElementById("clear-cart")?.addEventListener("click", () => {
     clearCart();
     nameInput.value = "";
     addressInput.value = "";
   });
 
-  // Enviar pedido
   document.getElementById("send-order")?.addEventListener("click", () => {
     const name = customerName.get();
     const address = customerAddress.get();
@@ -272,11 +241,10 @@
     }
 
     const message = generateWhatsAppMessage();
-    const waLink = `https://wa.link/abc123?text=${message}`;
+    const waLink = `https://wa.link/+51982294241?text=${message}`;
 
     window.open(waLink, "_blank");
 
-    // Opcional: vaciar carrito después de enviar
     // clearCart();
     // nameInput.value = '';
     // addressInput.value = '';
