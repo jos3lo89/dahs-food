@@ -73,17 +73,21 @@ export function generateWhatsAppMessage(): string {
   const address = customerAddress.get();
   const total = getCartTotal();
 
-  let message = "🍽 *Nuevo Pedido de Desayunos*\n\n";
+  let message = "*NUEVO PEDIDO DE DESAYUNOS*\n";
+  message += "----------------------------------\n\n";
 
   items.forEach((item) => {
-    message += `${item.name} x${item.quantity} = S/ ${(
+    message += `*${item.name}*\n`;
+    message += `   ${item.quantity} u. x S/ ${item.price.toFixed(2)} = *S/ ${(
       item.price * item.quantity
-    ).toFixed(2)}\n`;
+    ).toFixed(2)}*\n\n`;
   });
 
-  message += `\n*Total a pagar: S/ ${total.toFixed(2)}*\n\n`;
-  message += `👤 Cliente: ${name}\n`;
-  message += `📍 Dirección: ${address}`;
+  message += "----------------------------------\n";
+  message += `*TOTAL A PAGAR: S/ ${total.toFixed(2)}*\n\n`;
+  message += `*Cliente:* ${name}\n`;
+  message += `*Dirección:* ${address}\n\n`;
+  message += "Espero mi pedido, ¡Gracias!";
 
   return encodeURIComponent(message);
 }

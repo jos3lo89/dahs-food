@@ -231,17 +231,23 @@
     const items = Object.values(cartItems.get());
 
     if (items.length === 0) {
-      alert("❌ Tu carrito está vacío");
+      alert("❌ Tu carrito está vacío. Agrega al menos un producto.");
       return;
     }
 
-    if (!name || !address) {
-      alert("❌ Por favor completa tu nombre y dirección");
+    if (!name) {
+      alert("❌ Por favor, ingresa tu nombre.");
+      return;
+    }
+
+    if (!address) {
+      alert("❌ Por favor, ingresa tu dirección de entrega.");
       return;
     }
 
     const message = generateWhatsAppMessage();
-    const waLink = `https://wa.link/+51982294241?text=${message}`;
+    const phone = "51982294241";
+    const waLink = `https://wa.me/${phone}?text=${message}`;
 
     window.open(waLink, "_blank");
 
