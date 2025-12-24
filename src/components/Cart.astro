@@ -1,0 +1,285 @@
+---
+
+---
+
+<!-- Modal del Carrito -->
+<div
+  id="cart-modal"
+  class="fixed inset-0 backdrop-blur-lg z-50 hidden items-center justify-center p-4"
+>
+  <div
+    class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+  >
+    <!-- Header -->
+    <div
+      class="bg-linear-to-r from-pink-500 to-pink-600 text-white p-6 flex items-center justify-between"
+    >
+      <div class="flex items-center space-x-3">
+        <span class="text-3xl">🛒</span>
+        <h3 class="text-2xl font-bold">Tu Carrito</h3>
+      </div>
+      <button
+        id="close-cart"
+        class="text-white hover:text-pink-200 text-3xl font-bold">×</button
+      >
+    </div>
+
+    <!-- Contenido -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <div id="cart-items" class="space-y-4">
+        <!-- Items del carrito se insertarán aquí -->
+      </div>
+
+      <div id="empty-cart-message" class="text-center py-12 hidden">
+        <span class="text-6xl mb-4 block">🍽️</span>
+        <p class="text-xl text-gray-500">Tu carrito está vacío</p>
+        <p class="text-gray-400 mt-2">¡Agrega algunos desayunos deliciosos!</p>
+      </div>
+    </div>
+
+    <!-- Formulario y Total -->
+    <div
+      id="cart-footer"
+      class="border-t border-pink-200 p-6 space-y-4 bg-pink-50"
+    >
+      <!-- Inputs de cliente -->
+      <div class="space-y-3">
+        <input
+          type="text"
+          id="customer-name"
+          placeholder="Tu nombre"
+          class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-400 focus:outline-none transition"
+        />
+        <input
+          type="text"
+          id="customer-address"
+          placeholder="Tu dirección de entrega"
+          class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-400 focus:outline-none transition"
+        />
+      </div>
+
+      <!-- Total -->
+      <div
+        class="flex items-center justify-between text-2xl font-bold text-pink-900"
+      >
+        <span>Total:</span>
+        <span id="cart-total">S/ 0.00</span>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-3">
+        <button
+          id="clear-cart"
+          class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-full transition"
+        >
+          Vaciar Carrito
+        </button>
+        <button
+          id="send-order"
+          class="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-full transition shadow-lg hover:shadow-xl"
+        >
+          Enviar Pedido 📱
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import {
+    cartItems,
+    isCartOpen,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    getCartTotal,
+    getCartCount,
+    customerName,
+    customerAddress,
+    generateWhatsAppMessage,
+  } from "../store/cart";
+
+  const modal = document.getElementById("cart-modal");
+  const cartItemsContainer = document.getElementById("cart-items");
+  const emptyMessage = document.getElementById("empty-cart-message");
+  const cartFooter = document.getElementById("cart-footer");
+  const cartTotalEl = document.getElementById("cart-total");
+  const cartCountEl = document.getElementById("cart-count");
+  const nameInput = document.getElementById(
+    "customer-name"
+  ) as HTMLInputElement;
+  const addressInput = document.getElementById(
+    "customer-address"
+  ) as HTMLInputElement;
+
+  // Abrir/cerrar modal
+  isCartOpen.subscribe((open) => {
+    if (open) {
+      modal?.classList.remove("hidden");
+      modal?.classList.add("flex");
+    } else {
+      modal?.classList.add("hidden");
+      modal?.classList.remove("flex");
+    }
+  });
+
+  document.getElementById("close-cart")?.addEventListener("click", () => {
+    isCartOpen.set(false);
+  });
+
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      isCartOpen.set(false);
+    }
+  });
+
+  // Renderizar carrito
+  function renderCart() {
+    const items = Object.values(cartItems.get());
+    const total = getCartTotal();
+    const count = getCartCount();
+
+    // Actualizar contador en header
+    if (cartCountEl) {
+      cartCountEl.textContent = count.toString();
+      if (count > 0) {
+        cartCountEl.classList.remove("hidden");
+      } else {
+        cartCountEl.classList.add("hidden");
+      }
+    }
+
+    // Actualizar total
+    if (cartTotalEl) {
+      cartTotalEl.textContent = `S/ ${total.toFixed(2)}`;
+    }
+
+    // Mostrar/ocultar mensaje vacío
+    if (items.length === 0) {
+      emptyMessage?.classList.remove("hidden");
+      cartFooter?.classList.add("hidden");
+      if (cartItemsContainer) cartItemsContainer.innerHTML = "";
+      return;
+    }
+
+    emptyMessage?.classList.add("hidden");
+    cartFooter?.classList.remove("hidden");
+
+    // Renderizar items
+    if (cartItemsContainer) {
+      cartItemsContainer.innerHTML = items
+        .map(
+          (item) => `
+        <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-md">
+          <img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl" />
+          <div class="flex-1">
+            <h4 class="font-bold text-pink-900">${item.name}</h4>
+            <p class="text-sm text-gray-600">S/ ${item.price.toFixed(2)} c/u</p>
+          </div>
+          <div class="flex items-center bg-pink-50 rounded-full overflow-hidden">
+            <button class="cart-decrease px-3 py-1 text-pink-600 hover:bg-pink-100 font-bold" data-id="${item.id}">−</button>
+            <span class="px-3 py-1 font-semibold text-pink-900">${item.quantity}</span>
+            <button class="cart-increase px-3 py-1 text-pink-600 hover:bg-pink-100 font-bold" data-id="${item.id}">+</button>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-pink-900">S/ ${(item.price * item.quantity).toFixed(2)}</p>
+            <button class="cart-remove cursor-pointer text-xs text-red-500 hover:text-red-700 mt-1" data-id="${item.id}">Eliminar</button>
+          </div>
+        </div>
+      `
+        )
+        .join("");
+
+      // Event listeners para botones de carrito
+      document.querySelectorAll(".cart-increase").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (id) {
+            const cart = cartItems.get();
+            updateQuantity(id, cart[id].quantity + 1);
+          }
+        });
+      });
+
+      // document.querySelectorAll(".cart-decrease").forEach((btn) => {
+      //   btn.addEventListener("click", () => {
+      //     const id = btn.getAttribute("data-id");
+      //     if (id) {
+      //       const cart = cartItems.get();
+      //       updateQuantity(id, cart[id].quantity - 1);
+      //     }
+      //   });
+      // });
+
+      // BUSCA ESTA PARTE EN TU SCRIPT DEL MODAL (dentro de renderCart):
+      document.querySelectorAll(".cart-decrease").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (id) {
+            const cart = cartItems.get();
+            // CAMBIO AQUÍ: Validamos que la cantidad sea mayor a 1 antes de restar
+            if (cart[id].quantity > 1) {
+              updateQuantity(id, cart[id].quantity - 1);
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll(".cart-remove").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (id) removeFromCart(id);
+        });
+      });
+    }
+  }
+
+  // Suscribirse a cambios
+  cartItems.subscribe(renderCart);
+  renderCart();
+
+  // Inputs de nombre y dirección
+  nameInput?.addEventListener("input", (e) => {
+    customerName.set((e.target as HTMLInputElement).value);
+  });
+
+  addressInput?.addEventListener("input", (e) => {
+    customerAddress.set((e.target as HTMLInputElement).value);
+  });
+
+  // Vaciar carrito
+
+  document.getElementById("clear-cart")?.addEventListener("click", () => {
+    clearCart();
+    nameInput.value = "";
+    addressInput.value = "";
+  });
+
+  // Enviar pedido
+  document.getElementById("send-order")?.addEventListener("click", () => {
+    const name = customerName.get();
+    const address = customerAddress.get();
+    const items = Object.values(cartItems.get());
+
+    if (items.length === 0) {
+      alert("❌ Tu carrito está vacío");
+      return;
+    }
+
+    if (!name || !address) {
+      alert("❌ Por favor completa tu nombre y dirección");
+      return;
+    }
+
+    const message = generateWhatsAppMessage();
+    const waLink = `https://wa.link/abc123?text=${message}`;
+
+    window.open(waLink, "_blank");
+
+    // Opcional: vaciar carrito después de enviar
+    // clearCart();
+    // nameInput.value = '';
+    // addressInput.value = '';
+    // isCartOpen.set(false);
+  });
+</script>
